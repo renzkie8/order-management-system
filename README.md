@@ -2,7 +2,7 @@
 
 Flask and MySQL order-management group project with admin and customer workflows.
 
-**Portfolio:** [Carl Renz Colico](https://github.com/renzkie8) · **Year:** Year 2
+**Portfolio:** [Carl Renz Colico](https://github.com/renzkie8) · **Year / Section:** Year 2 — BSCS 2-A
 
 ## Methodology
 
