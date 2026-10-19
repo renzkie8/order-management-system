@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2><i class="fas fa-shopping-cart me-2"></i>Your Cart</h2>
+    {% if products %}
+    <form method="POST" action="{{ url_for('checkout') }}">
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Price</th>
+                        <th>Quantity</th>
+                        <th>Subtotal</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in products %}
+                    <tr>
+                        <td class="d-flex align-items-center">
+                            {% if item.image_filename %}
+                            <img src="{{ url_for('product_image', filename=item.image_filename) }}" alt="{{ item.name }}" style="width: 60px; height: 60px; object-fit: cover;" class="me-2 rounded">
+                            {% else %}
+                            <i class="fas fa-image fa-2x text-muted me-2"></i>
+                            {% endif %}
+                            <span>{{ item.name }}</span>
+                        </td>
+                        <td>Php{{ "%.2f"|format(item.price) }}</td>
+                        <td>
+                            <form action="{{ url_for('update_cart', product_id=item.id) }}" method="POST" class="d-flex align-items-center">
+                                <input type="number" name="quantity" value="{{ item.quantity }}" min="1" class="form-control me-2" style="width: 80px;">
+                                <button type="submit" class="btn btn-sm btn-primary"><i class="fas fa-sync-alt"></i></button>
+                            </form>
+                        </td>
+                        <td>Php{{ "%.2f"|format(item.subtotal) }}</td>
+                        <td>
+                            <form action="{{ url_for('update_cart', product_id=item.id) }}" method="POST">
+                                <input type="hidden" name="quantity" value="0">
+                                <button type="submit" class="btn btn-sm btn-danger" title="Remove"><i class="fas fa-trash"></i></button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th colspan="3" class="text-end">Total:</th>
+                        <th>Php{{ "%.2f"|format(total) }}</th>
+                        <th></th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        <div class="d-flex justify-content-between mt-4">
+            <a href="{{ url_for('customer_dashboard') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Continue Shopping
+            </a>
+            <button type="submit" class="btn btn-success btn-lg">
+                <i class="fas fa-credit-card me-2"></i>Checkout
+            </button>
+        </div>
+    </form>
+    {% else %}
+    <div class="alert alert-info text-center mt-4">
+        <i class="fas fa-shopping-cart fa-2x mb-2"></i>
+        <h5>Your cart is empty.</h5>
+        <a href="{{ url_for('customer_dashboard') }}" class="btn btn-primary mt-2">
+            <i class="fas fa-shopping-bag me-2"></i>Browse Products
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %} 

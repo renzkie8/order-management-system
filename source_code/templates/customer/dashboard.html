@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h2 class="mb-0">
+                <i class="fas fa-user-circle me-2"></i>Customer Dashboard
+            </h2>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Profile Information -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-user me-2"></i>Profile Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-user-circle fa-5x text-primary mb-3"></i>
+                        <h4>{{ customer.name }}</h4>
+                        <p class="text-muted">{{ customer.email }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <p><i class="fas fa-phone me-2"></i><strong>Phone:</strong> {{ customer.phone or 'Not provided' }}</p>
+                        <p><i class="fas fa-map-marker-alt me-2"></i><strong>Address:</strong> {{ customer.address or 'Not provided' }}</p>
+                    </div>
+                    <div class="d-grid">
+                        <a href="{{ url_for('edit_profile') }}" class="btn btn-primary">
+                            <i class="fas fa-edit me-2"></i>Edit Profile
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order History -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-history me-2"></i>Order History
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if orders %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th><i class="fas fa-hashtag me-2"></i>Order ID</th>
+                                    <th><i class="fas fa-calendar me-2"></i>Date</th>
+                                    <th><i class="fas fa-tag me-2"></i>Status</th>
+                                    <th><i class="fa-solid fa-peso-sign me-2"></i>Total</th>
+                                    <th><i class="fas fa-cogs me-2"></i>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in orders %}
+                                <tr>
+                                    <td>#{{ order.id }}</td>
+                                    <td>{{ order.order_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                                    <td>
+                                        <span class="badge {% if order.status == 'completed' %}bg-success{% elif order.status == 'pending' %}bg-warning{% else %}bg-secondary{% endif %}">
+                                            {{ order.status }}
+                                        </span>
+                                    </td>
+                                    <td>Php{{ "%.2f"|format(order.total_amount) }}</td>
+                                    <td>
+                                        <a href="{{ url_for('order_details', order_id=order.id) }}" class="btn btn-info btn-sm">
+                                            <i class="fas fa-eye me-1"></i>View
+                                        </a>
+                                        {% if order.status != 'cancelled' %}
+                                        <form action="{{ url_for('cancel_order', order_id=order.id) }}" method="POST" class="d-inline">
+                                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to cancel this order?')">
+                                                <i class="fas fa-times me-1"></i>Cancel
+                                            </button>
+                                        </form>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+                        <h5>No Orders Yet</h5>
+                        <p class="text-muted">Start shopping to see your orders here</p>
+                        <a href="#products" class="btn btn-primary">
+                            <i class="fas fa-shopping-bag me-2"></i>Browse Products
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Available Products -->
+    <div class="row mt-5" id="products">
+        <div class="col-12 mb-3">
+            <h3><i class="fas fa-box-open me-2"></i>Available Products</h3>
+        </div>
+        <div class="row row-cols-1 row-cols-md-3 g-4">
+            {% for product in products %}
+            <div class="col">
+                <div class="card h-100">
+                    {% if product.image_filename %}
+                    <img src="{{ url_for('product_image', filename=product.image_filename) }}" class="card-img-top" alt="{{ product.name }}" style="height: 180px; object-fit: cover;">
+                    {% else %}
+                    <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 180px;">
+                        <i class="fas fa-image fa-3x text-muted"></i>
+                    </div>
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">{{ product.name }}</h5>
+                        <p class="card-text">{{ product.description }}</p>
+                        <p class="card-text"><strong>Price:</strong> Php{{ "%.2f"|format(product.price) }}</p>
+                        <form action="{{ url_for('add_to_cart', product_id=product.id) }}" method="POST" class="d-flex align-items-center">
+                            <input type="number" name="quantity" value="1" min="1" max="{{ product.stock_quantity }}" class="form-control me-2" style="width: 80px;">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-cart-plus me-1"></i>Add to Cart
+                            </button>
+                        </form>
+                    </div>
+                    <div class="card-footer bg-transparent d-flex justify-content-between align-items-center">
+                        <span class="badge {% if product.stock_quantity > 0 %}bg-success{% else %}bg-danger{% endif %}">
+                            {{ 'In Stock' if product.stock_quantity > 0 else 'Out of Stock' }}
+                        </span>
+                        <small class="text-muted">ID: {{ product.id }}</small>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="col-12 mt-4 text-end">
+            <a href="{{ url_for('view_cart') }}" class="btn btn-warning btn-lg">
+                <i class="fas fa-shopping-cart me-2"></i>View Cart
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %} 

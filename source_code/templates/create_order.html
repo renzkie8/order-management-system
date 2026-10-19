@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6 offset-md-3">
+        <h2>Create New Order</h2>
+        <form method="POST" action="{{ url_for('create_order') }}">
+            <div class="mb-3">
+                <label for="customer_id" class="form-label">Customer</label>
+                <select class="form-select" id="customer_id" name="customer_id" required>
+                    <option value="">Select a customer</option>
+                    {% for customer in customers %}
+                    <option value="{{ customer.id }}">{{ customer.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="mb-3">
+                <label for="product_id" class="form-label">Product</label>
+                <select class="form-select" id="product_id" name="product_id" required>
+                    <option value="">Select a product</option>
+                    {% for product in products %}
+                    <option value="{{ product.id }}" data-price="{{ product.price }}" data-stock="{{ product.stock_quantity }}">
+                        {{ product.name }} - ${{ "%.2f"|format(product.price) }} (Stock: {{ product.stock_quantity }})
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="mb-3">
+                <label for="quantity" class="form-label">Quantity</label>
+                <input type="number" class="form-control" id="quantity" name="quantity" min="1" required>
+                <div id="stockWarning" class="form-text text-danger" style="display: none;">
+                    Not enough stock available!
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">Total Amount</label>
+                <div id="totalAmount" class="form-control-plaintext">$0.00</div>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">Create Order</button>
+            <a href="{{ url_for('orders') }}" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const productSelect = document.getElementById('product_id');
+    const quantityInput = document.getElementById('quantity');
+    const totalAmount = document.getElementById('totalAmount');
+    const stockWarning = document.getElementById('stockWarning');
+    
+    function updateTotal() {
+        const selectedOption = productSelect.options[productSelect.selectedIndex];
+        const price = parseFloat(selectedOption.dataset.price) || 0;
+        const quantity = parseInt(quantityInput.value) || 0;
+        const stock = parseInt(selectedOption.dataset.stock) || 0;
+        
+        totalAmount.textContent = `$${(price * quantity).toFixed(2)}`;
+        
+        if (quantity > stock) {
+            stockWarning.style.display = 'block';
+            document.querySelector('button[type="submit"]').disabled = true;
+        } else {
+            stockWarning.style.display = 'none';
+            document.querySelector('button[type="submit"]').disabled = false;
+        }
+    }
+    
+    productSelect.addEventListener('change', updateTotal);
+    quantityInput.addEventListener('input', updateTotal);
+});
+</script>
+{% endblock %} 
